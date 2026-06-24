@@ -47,7 +47,7 @@ If the startup script is unavailable, read only the smallest useful slices of:
 - Windows shell and networking policy: `patterns/AGENTS_RUNTIME/05-windows-command-policy.md`
 - Token economy, verification command lookup, `gi info`, `gi stack`, `gi refactor`, feature contracts, and large-output handling: `patterns/AGENTS_RUNTIME/06-tool-usage-and-token-economy.md`
 - Startup, restore, project goal, bug evidence, PDF inspection, repository cleanup, filesystem boundaries, and first-message handling: `patterns/AGENTS_RUNTIME/07-startup-and-scope.md`
-- Config-service, service guide/contract lookup, task manager commands, sprint commands, and web-service port registration: `patterns/AGENTS_RUNTIME/08-config-service-and-task-manager.md`
+- Config-service, service guide/contract lookup, task manager commands, manager-backed and local sprint commands, and web-service port registration: `patterns/AGENTS_RUNTIME/08-config-service-and-task-manager.md`
 - Dev/prod online service publication, FTP deploy, restart/reboot, first test, full test, default reset, installer packaging, SQL/vector inspection, and project/RAG rebuild commands: `patterns/AGENTS_RUNTIME/09-project-operation-commands.md`
 - Nested repositories, private local app data, product-plan intent signals, and missing required entities: `patterns/AGENTS_RUNTIME/10-private-scope-and-missing-context.md`
 - Project, commit, task, and response language preferences: `patterns/AGENTS_RUNTIME/11-language-preferences.md`
