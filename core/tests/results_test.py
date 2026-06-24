@@ -28,7 +28,7 @@ class TestCaseResultsEmpty:
         self.test_stat_line()  # make sure that the stats line isn't saying we applied a '[' filter
 
     def test_stat_line(self):
-        eq_("0 / 0 (0.00 B / 0.00 B) duplicates marked.", self.results.stat_line)
+        eq_("0 / 0 (0.00 B / 0.00 B) files marked.", self.results.stat_line)
 
     def test_groups(self):
         eq_(0, len(self.results.groups))
@@ -73,7 +73,7 @@ class TestCaseResultsWithSomeGroups:
         self.results.groups = self.groups
 
     def test_stat_line(self):
-        eq_("0 / 3 (0.00 B / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("0 / 5 (0.00 B / 1.01 KB) files marked.", self.results.stat_line)
 
     def test_groups(self):
         eq_(2, len(self.results.groups))
@@ -91,9 +91,6 @@ class TestCaseResultsWithSomeGroups:
         eq_(2, len(g1))
         assert g1 in self.results.groups
         self.results.remove_duplicates([g1.ref])
-        eq_(2, len(g1))
-        assert g1 in self.results.groups
-        self.results.remove_duplicates([g1.dupes[0]])
         eq_(0, len(g1))
         assert g1 not in self.results.groups
         self.results.remove_duplicates([g2.dupes[0]])
@@ -290,27 +287,27 @@ class TestCaseResultsMarkings:
         self.results.groups = self.groups
 
     def test_stat_line(self):
-        eq_("0 / 3 (0.00 B / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("0 / 5 (0.00 B / 1.01 KB) files marked.", self.results.stat_line)
         self.results.mark(self.objects[1])
-        eq_("1 / 3 (1.00 KB / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("1 / 5 (1.00 KB / 1.01 KB) files marked.", self.results.stat_line)
         self.results.mark_invert()
-        eq_("2 / 3 (2.00 B / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("4 / 5 (4.00 B / 1.01 KB) files marked.", self.results.stat_line)
         self.results.mark_invert()
         self.results.unmark(self.objects[1])
         self.results.mark(self.objects[2])
         self.results.mark(self.objects[4])
-        eq_("2 / 3 (2.00 B / 1.01 KB) duplicates marked.", self.results.stat_line)
-        self.results.mark(self.objects[0])  # this is a ref, it can't be counted
-        eq_("2 / 3 (2.00 B / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("2 / 5 (2.00 B / 1.01 KB) files marked.", self.results.stat_line)
+        self.results.mark(self.objects[0])
+        eq_("3 / 5 (3.00 B / 1.01 KB) files marked.", self.results.stat_line)
         self.results.groups = self.groups
-        eq_("0 / 3 (0.00 B / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("0 / 5 (0.00 B / 1.01 KB) files marked.", self.results.stat_line)
 
     def test_with_ref_duplicate(self):
         self.objects[1].is_ref = True
         self.results.groups = self.groups
-        assert not self.results.mark(self.objects[1])
+        assert self.results.mark(self.objects[1])
         self.results.mark(self.objects[2])
-        eq_("1 / 2 (1.00 B / 2.00 B) duplicates marked.", self.results.stat_line)
+        eq_("2 / 5 (1.01 KB / 1.01 KB) files marked.", self.results.stat_line)
 
     def test_perform_on_marked(self):
         def log_object(o):
@@ -320,10 +317,12 @@ class TestCaseResultsMarkings:
         log = []
         self.results.mark_all()
         self.results.perform_on_marked(log_object, False)
+        assert self.objects[0] in log
         assert self.objects[1] in log
         assert self.objects[2] in log
+        assert self.objects[3] in log
         assert self.objects[4] in log
-        eq_(3, len(log))
+        eq_(5, len(log))
         log = []
         self.results.mark_none()
         self.results.mark(self.objects[4])
@@ -342,12 +341,10 @@ class TestCaseResultsMarkings:
         self.results.mark_all()
         assert self.results.is_marked(self.objects[1])
         self.results.perform_on_marked(log_object, True)
-        eq_(len(log), 3)
-        eq_(len(self.results.groups), 1)
-        eq_(len(self.results.groups[0]), 2)
-        assert self.objects[1] in self.results.groups[0]
+        eq_(len(log), 5)
+        eq_(len(self.results.groups), 0)
         assert not self.results.is_marked(self.objects[2])
-        assert self.results.is_marked(self.objects[1])
+        assert not self.results.is_marked(self.objects[1])
         eq_(len(self.results.problems), 1)
         dupe, msg = self.results.problems[0]
         assert dupe is self.objects[1]
@@ -363,10 +360,12 @@ class TestCaseResultsMarkings:
         self.objects[1].is_ref = True
         self.results.mark_all()
         self.results.perform_on_marked(log_object, True)
-        assert self.objects[1] not in log
+        assert self.objects[0] in log
+        assert self.objects[1] in log
         assert self.objects[2] in log
+        assert self.objects[3] in log
         assert self.objects[4] in log
-        eq_(2, len(log))
+        eq_(5, len(log))
         eq_(0, len(self.results.groups))
 
     def test_perform_on_marked_remove_objects_only_at_the_end(self):
@@ -385,21 +384,21 @@ class TestCaseResultsMarkings:
     def test_remove_duplicates(self):
         g1 = self.results.groups[0]
         self.results.mark(g1.dupes[0])
-        eq_("1 / 3 (1.00 KB / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("1 / 5 (1.00 KB / 1.01 KB) files marked.", self.results.stat_line)
         self.results.remove_duplicates([g1.dupes[1]])
-        eq_("1 / 2 (1.00 KB / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("1 / 4 (1.00 KB / 1.01 KB) files marked.", self.results.stat_line)
         self.results.remove_duplicates([g1.dupes[0]])
-        eq_("0 / 1 (0.00 B / 1.00 B) duplicates marked.", self.results.stat_line)
+        eq_("0 / 2 (0.00 B / 2.00 B) files marked.", self.results.stat_line)
 
     def test_make_ref(self):
         g = self.results.groups[0]
         d = g.dupes[0]
         self.results.mark(d)
-        eq_("1 / 3 (1.00 KB / 1.01 KB) duplicates marked.", self.results.stat_line)
+        eq_("1 / 5 (1.00 KB / 1.01 KB) files marked.", self.results.stat_line)
         self.results.make_ref(d)
-        eq_("0 / 3 (0.00 B / 3.00 B) duplicates marked.", self.results.stat_line)
+        eq_("0 / 5 (0.00 B / 1.01 KB) files marked.", self.results.stat_line)
         self.results.make_ref(d)
-        eq_("0 / 3 (0.00 B / 3.00 B) duplicates marked.", self.results.stat_line)
+        eq_("0 / 5 (0.00 B / 1.01 KB) files marked.", self.results.stat_line)
 
     def test_save_xml(self):
         self.results.mark(self.objects[1])
@@ -411,11 +410,11 @@ class TestCaseResultsMarkings:
         root = doc.getroot()
         g1, g2 = root.iter("group")
         d1, d2, d3 = g1.iter("file")
-        eq_("n", d1.get("marked"))
+        eq_("y", d1.get("marked"))
         eq_("n", d2.get("marked"))
         eq_("y", d3.get("marked"))
         d1, d2 = g2.iter("file")
-        eq_("n", d1.get("marked"))
+        eq_("y", d1.get("marked"))
         eq_("y", d2.get("marked"))
 
     def test_load_xml(self):
@@ -431,10 +430,10 @@ class TestCaseResultsMarkings:
         app = DupeGuru()
         r = Results(app)
         r.load_from_xml(f, get_file)
-        assert not r.is_marked(self.objects[0])
+        assert r.is_marked(self.objects[0])
         assert not r.is_marked(self.objects[1])
         assert r.is_marked(self.objects[2])
-        assert not r.is_marked(self.objects[3])
+        assert r.is_marked(self.objects[3])
         assert r.is_marked(self.objects[4])
 
 
@@ -713,13 +712,13 @@ class TestCaseResultsFilter:
         eq_(0, len(self.results.dupes))
 
     def test_stat_line(self):
-        expected = "0 / 1 (0.00 B / 1.00 B) duplicates marked. filter: foo"
+        expected = "0 / 2 (0.00 B / 2.00 B) files marked. filter: foo"
         eq_(expected, self.results.stat_line)
         self.results.apply_filter(r"bar")
-        expected = "0 / 0 (0.00 B / 0.00 B) duplicates marked. filter: foo --> bar"
+        expected = "0 / 1 (0.00 B / 1.00 B) files marked. filter: foo --> bar"
         eq_(expected, self.results.stat_line)
         self.results.apply_filter(None)
-        expected = "0 / 3 (0.00 B / 1.01 KB) duplicates marked."
+        expected = "0 / 5 (0.00 B / 1.01 KB) files marked."
         eq_(expected, self.results.stat_line)
 
     def test_mark_count_is_filtered_as_well(self):
@@ -728,7 +727,7 @@ class TestCaseResultsFilter:
         for dupe in self.results.dupes:
             self.results.mark(dupe)
         self.results.apply_filter(r"foo")
-        expected = "1 / 1 (1.00 B / 1.00 B) duplicates marked. filter: foo"
+        expected = "1 / 2 (1.00 B / 2.00 B) files marked. filter: foo"
         eq_(expected, self.results.stat_line)
 
     def test_mark_all_only_affects_filtered_items(self):
@@ -736,7 +735,7 @@ class TestCaseResultsFilter:
         # items that are actually in the filter.
         self.results.mark_all()
         self.results.apply_filter(None)
-        eq_(self.results.mark_count, 1)
+        eq_(self.results.mark_count, 2)
 
     def test_sort_groups(self):
         self.results.apply_filter(None)
@@ -797,11 +796,11 @@ class TestCaseResultsFilter:
         g1, g2 = self.groups
         bar_bleh = g1[1]  # The "bar bleh" dupe is filtered out
         self.results.make_ref(bar_bleh)
-        # Now the stats should display *2* markable dupes (instead of 1)
-        expected = "0 / 2 (0.00 B / 2.00 B) duplicates marked. filter: foo"
+        # Now the stats should keep counting only files that match the filter.
+        expected = "0 / 2 (0.00 B / 2.00 B) files marked. filter: foo"
         eq_(expected, self.results.stat_line)
         self.results.apply_filter(None)  # Now let's make sure our unfiltered results aren't fucked up
-        expected = "0 / 3 (0.00 B / 3.00 B) duplicates marked."
+        expected = "0 / 5 (0.00 B / 1.01 KB) files marked."
         eq_(expected, self.results.stat_line)
 
 
@@ -815,5 +814,5 @@ class TestCaseResultsRefFile:
         self.results.groups = self.groups
 
     def test_stat_line(self):
-        expected = "0 / 2 (0.00 B / 2.00 B) duplicates marked."
+        expected = "0 / 5 (0.00 B / 1.01 KB) files marked."
         eq_(expected, self.results.stat_line)

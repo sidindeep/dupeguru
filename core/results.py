@@ -65,14 +65,10 @@ class Results(Markable):
         return self.__total_count
 
     def _is_markable(self, dupe):
-        if dupe.is_ref:
-            return False
         g = self.get_group_of_duplicate(dupe)
         if not g:
             return False
-        if dupe is g.ref:
-            return False
-        if self.__filtered_dupes and dupe not in self.__filtered_dupes:
+        if self.__filtered_dupes is not None and dupe not in self.__filtered_dupes:
             return False
         return True
 
@@ -113,6 +109,11 @@ class Results(Markable):
                 self.sort_dupes(sd[0], sd[1], sd[2])
         return self.__dupes
 
+    def __get_markable_list(self):
+        if self.__filtered_dupes is not None:
+            return list(self.__filtered_dupes)
+        return flatten(group[:] for group in self.groups)
+
     def __get_groups(self):
         if self.__filtered_groups is None:
             return self.__groups
@@ -132,7 +133,7 @@ class Results(Markable):
             total_size = sum(dupe.size for dupe in self.__filtered_dupes if self.is_markable(dupe))
         if self.mark_inverted:
             marked_size = self.__total_size - marked_size
-        result = tr("%d / %d (%s / %s) duplicates marked.") % (
+        result = tr("%d / %d (%s / %s) files marked.") % (
             mark_count,
             total_count,
             format_size(marked_size, 2),
@@ -146,7 +147,7 @@ class Results(Markable):
         self.__total_size = 0
         self.__total_count = 0
         for group in self.groups:
-            markable = [dupe for dupe in group.dupes if self._is_markable(dupe)]
+            markable = [dupe for dupe in group if self._is_markable(dupe)]
             self.__total_count += len(markable)
             self.__total_size += sum(dupe.size for dupe in markable)
 
@@ -276,12 +277,7 @@ class Results(Markable):
         if not g.switch_ref(dupe):
             return False
         self._remove_mark_flag(dupe)
-        if not r.is_ref:
-            self.__total_count += 1
-            self.__total_size += r.size
-        if not dupe.is_ref:
-            self.__total_count -= 1
-            self.__total_size -= dupe.size
+        self.__recalculate_stats()
         self.__dupes = None
         self.is_modified = True
         return True
@@ -297,7 +293,7 @@ class Results(Markable):
         """
         self.problems = []
         to_remove = []
-        marked = (dupe for dupe in self.dupes if self.is_marked(dupe))
+        marked = [dupe for dupe in self.__get_markable_list() if self.is_marked(dupe)]
         for dupe in marked:
             try:
                 func(dupe)
@@ -316,25 +312,30 @@ class Results(Markable):
         Also, remove the group from :attr:`groups` if it ends up empty.
         """
         affected_groups = set()
-        for dupe in dupes:
+        for dupe in dict.fromkeys(dupes):
             group = self.get_group_of_duplicate(dupe)
-            if dupe not in group.dupes:
-                return
-            ref = group.ref
+            if group is None or dupe not in group:
+                continue
+            group_members = list(group)
             group.remove_dupe(dupe, False)
-            del self.__group_of_duplicate[dupe]
+            self.__group_of_duplicate.pop(dupe, None)
             self._remove_mark_flag(dupe)
-            self.__total_count -= 1
-            self.__total_size = max(0, self.__total_size - dupe.size)
             if not group:
-                del self.__group_of_duplicate[ref]
-                self.__groups.remove(group)
+                for member in group_members:
+                    self.__group_of_duplicate.pop(member, None)
+                    self._remove_mark_flag(member)
+                if group in self.__groups:
+                    self.__groups.remove(group)
                 if self.__filtered_groups:
-                    self.__filtered_groups.remove(group)
+                    try:
+                        self.__filtered_groups.remove(group)
+                    except ValueError:
+                        pass
             else:
                 affected_groups.add(group)
         for group in affected_groups:
             group.discard_matches()
+        self.__recalculate_stats()
         self.__dupes = None
         self.is_modified = bool(self.__groups)
 

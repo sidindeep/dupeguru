@@ -211,8 +211,8 @@ class TestCaseDupeGuruWithResults:
         # cases where the selected dupes aren't there are correctly handled
         self.rtable.select([1, 2, 3])
         self.app.remove_selected()
-        # The first 2 dupes have been removed. The 3rd one is a ref. it stays there, in first pos.
-        eq_(self.rtable.selected_indexes, [1])  # no exception
+        # Selected references are removable too, so the whole first group disappears.
+        eq_(self.rtable.selected_indexes, [])  # no exception
 
     def test_select_result_node_paths(self, do_setup):
         app = self.app
@@ -289,11 +289,11 @@ class TestCaseDupeGuruWithResults:
         app = self.app
         self.rtable.select([1])
         app.toggle_selected_mark_state()
-        # index 0 is unmarkable, but we throw it in the bunch to be sure that it doesn't make the
-        # selection heterogenoug when it shouldn't.
+        # Reference rows are markable too, so a mixed selection marks every selected row.
         self.rtable.select([0, 1, 4])
         app.toggle_selected_mark_state()
-        eq_(app.results.mark_count, 2)
+        eq_(app.results.mark_count, 3)
+        assert app.results.is_marked(self.objects[0])
         app.toggle_selected_mark_state()
         eq_(app.results.mark_count, 0)
 

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Transfer-Encoding: utf-8\n"
 
 #: core\app.py:42
-msgid "There are no marked duplicates. Nothing has been done."
-msgstr "There are no marked duplicates. Nothing has been done."
+msgid "There are no marked files. Nothing has been done."
+msgstr "There are no marked files. Nothing has been done."
 
 #: core\app.py:43
 msgid "There are no selected duplicates. Nothing has been done."
@@ -225,8 +225,8 @@ msgid "Oldest"
 msgstr "Oldest"
 
 #: core\results.py:142
-msgid "%d / %d (%s / %s) duplicates marked."
-msgstr "%d / %d (%s / %s) duplicates marked."
+msgid "%d / %d (%s / %s) files marked."
+msgstr "%d / %d (%s / %s) files marked."
 
 #: core\results.py:149
 msgid " filter: %s"

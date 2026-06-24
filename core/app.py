@@ -41,8 +41,8 @@ from core.gui.stats_label import StatsLabel
 HAD_FIRST_LAUNCH_PREFERENCE = "HadFirstLaunch"
 DEBUG_MODE_PREFERENCE = "DebugMode"
 
-MSG_NO_MARKED_DUPES = tr("There are no marked duplicates. Nothing has been done.")
-MSG_NO_SELECTED_DUPES = tr("There are no selected duplicates. Nothing has been done.")
+MSG_NO_MARKED_DUPES = tr("There are no marked files. Nothing has been done.")
+MSG_NO_SELECTED_DUPES = tr("There are no selected files. Nothing has been done.")
 MSG_MANY_FILES_TO_OPEN = tr(
     "You're about to open many files at once. Depending on what those "
     "files are opened with, doing so can create quite a mess. Continue?"
@@ -234,6 +234,8 @@ class DupeGuru(Broadcaster):
     def _do_delete_dupe(self, dupe, link_deleted, use_hardlinks, direct_deletion):
         if not dupe.path.exists():
             return
+        group = self.results.get_group_of_duplicate(dupe)
+        should_link_deleted = link_deleted and group is not None and dupe is not group.ref
         logging.debug("Sending '%s' to trash", dupe.path)
         str_path = str(dupe.path)
         if direct_deletion:
@@ -243,8 +245,7 @@ class DupeGuru(Broadcaster):
                 os.remove(str_path)
         else:
             send2trash(str_path)  # Raises OSError when there's a problem
-        if link_deleted:
-            group = self.results.get_group_of_duplicate(dupe)
+        if should_link_deleted:
             ref = group.ref
             linkfunc = os.link if use_hardlinks else os.symlink
             linkfunc(str(ref.path), str_path)
@@ -449,9 +450,9 @@ class DupeGuru(Broadcaster):
             self.clean_empty_dirs(source_path.parent)
 
     def copy_or_move_marked(self, copy):
-        """Start an async move (or copy) job on marked duplicates.
+        """Start an async move (or copy) job on marked files.
 
-        :param bool copy: If True, duplicates will be copied instead of moved
+        :param bool copy: If True, files will be copied instead of moved
         """
 
         def do(j):
@@ -476,7 +477,7 @@ class DupeGuru(Broadcaster):
             self._start_job(jobid, do)
 
     def delete_marked(self):
-        """Start an async job to send marked duplicates to the trash."""
+        """Start an async job to send marked files to the trash."""
         if not self.results.mark_count:
             self.view.show_message(MSG_NO_MARKED_DUPES)
             return
@@ -690,11 +691,11 @@ class DupeGuru(Broadcaster):
         :param duplicates: duplicates to remove.
         :type duplicates: list of :class:`~core.fs.File`
         """
-        self.results.remove_duplicates(self.without_ref(duplicates))
+        self.results.remove_duplicates(duplicates)
         self.notify("results_changed_but_keep_selection")
 
     def remove_marked(self):
-        """Removed marked duplicates from the results (without touching the files themselves)."""
+        """Removed marked files from the results (without touching the files themselves)."""
         if not self.results.mark_count:
             self.view.show_message(MSG_NO_MARKED_DUPES)
             return
@@ -706,7 +707,7 @@ class DupeGuru(Broadcaster):
 
     def remove_selected(self):
         """Removed :attr:`selected_dupes` from the results (without touching the files themselves)."""
-        dupes = self.without_ref(self.selected_dupes)
+        dupes = self.selected_dupes
         if not dupes:
             self.view.show_message(MSG_NO_SELECTED_DUPES)
             return
@@ -827,7 +828,7 @@ class DupeGuru(Broadcaster):
         self._start_job(JobType.SCAN, do)
 
     def toggle_selected_mark_state(self):
-        selected = self.without_ref(self.selected_dupes)
+        selected = self.selected_dupes
         if not selected:
             return
         if allsame(self.results.is_marked(d) for d in selected):

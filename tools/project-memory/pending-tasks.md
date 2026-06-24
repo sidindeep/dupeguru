@@ -14,22 +14,31 @@ generated outputs, secrets, credentials, or private production data.
 
 ## Tasks
 
-### TODO Task Name
+### Local Sprint: Mark Any Result File
 
-Goal: TODO
+Goal: allow users to mark every row in duplicate search results with checkboxes,
+including reference files, so marked actions can operate on exactly the files
+the user selected.
 
 Planned changes:
 
-- [ ] TODO
+- [x] Make reference result rows markable in core results.
+- [x] Let marked delete/move/copy/remove operations include marked references.
+- [x] Update result statistics and user-facing wording from duplicates to files.
+- [x] Add regression coverage for marking and removing reference files.
+- [x] Verify targeted core tests.
 
 Execution order:
 
-- [ ] TODO
+- [x] Inspect result marking, deletion, and table model flow.
+- [x] Patch core behavior and tests.
+- [x] Run targeted verification.
 
 Risks or dependencies:
 
-- [ ] TODO
+- [x] Deleting a marked reference must not create a replacement link to itself.
+- [x] Removing the last useful file in a group must not leave stale group mappings.
 
 Verification:
 
-- [ ] TODO
+- [x] `python -m pytest core/tests/results_test.py core/tests/app_test.py`

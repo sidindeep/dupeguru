@@ -8,28 +8,28 @@ repository into context at once.
 - [x] Identify entry points.
 - [x] Identify main modules/packages.
 - [x] Find run, test, build, and log commands.
-- [ ] Locate config and secret boundaries.
-- [ ] Locate tests and automation.
+- [x] Locate config and secret boundaries.
+- [x] Locate tests and automation.
 
 ## Architecture Map
 
-- [ ] Runtime lifecycle.
-- [ ] Data flow.
-- [ ] External APIs or services.
-- [ ] Persistence/storage.
-- [ ] UI routes, screens, or scenes.
-- [ ] Asset/template generation.
+- [x] Runtime lifecycle.
+- [x] Data flow.
+- [x] External APIs or services.
+- [x] Persistence/storage.
+- [x] UI routes, screens, or scenes.
+- [x] Asset/template generation.
 
 ## Quality Gates
 
-- [ ] Fast syntax or type check.
-- [ ] Unit tests.
-- [ ] Integration or smoke test.
-- [ ] Build/package command.
-- [ ] Log inspection command.
+- [x] Fast syntax or type check.
+- [x] Unit tests.
+- [x] Integration or smoke test.
+- [x] Build/package command.
+- [x] Log inspection command.
 
 ## Notes To Write
 
-- [ ] `architecture.md`
+- [x] `architecture.md`
 - [ ] `decisions.md`
-- [ ] `known-issues.md`
+- [x] `known-issues.md`

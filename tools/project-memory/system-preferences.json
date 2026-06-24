@@ -3,7 +3,9 @@
     "mode": "match_user",
     "language": "",
     "languages": [],
-    "project_environment_languages": [],
+    "project_environment_languages": [
+      "Russian"
+    ],
     "task_language": "",
     "task_languages": [],
     "available": [
